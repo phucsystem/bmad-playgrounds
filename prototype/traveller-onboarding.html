@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traveller Onboarding - Flight Booking</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      opacity: 0.8;
+      font-size: 0.9rem;
+    }
+
+    /* Progress Steps */
+    .progress-container {
+      display: flex;
+      justify-content: space-between;
+      padding: 24px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      position: relative;
+    }
+
+    .progress-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 60%;
+      width: 80%;
+      height: 2px;
+      background: #dee2e6;
+    }
+
+    .progress-step.active:not(:last-child)::after,
+    .progress-step.completed:not(:last-child)::after {
+      background: #667eea;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #dee2e6;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .progress-step.active .step-number {
+      background: #667eea;
+      color: white;
+    }
+
+    .progress-step.completed .step-number {
+      background: #28a745;
+      color: white;
+    }
+
+    .step-label {
+      font-size: 0.75rem;
+      color: #6c757d;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .progress-step.active .step-label {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    /* Form Sections */
+    .form-section {
+      display: none;
+      padding: 24px;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      color: #1a1a2e;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #667eea;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #495057;
+      margin-bottom: 6px;
+    }
+
+    label .required {
+      color: #dc3545;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+
+    .helper-text {
+      font-size: 0.75rem;
+      color: #6c757d;
+      margin-top: 4px;
+    }
+
+    /* Radio & Checkbox Groups */
+    .radio-group, .checkbox-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .radio-option, .checkbox-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .radio-option:hover, .checkbox-option:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+
+    .radio-option input, .checkbox-option input {
+      width: auto;
+    }
+
+    /* Passenger Counter */
+    .passenger-counter {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .counter-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .counter-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      background: white;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .counter-btn:hover {
+      border-color: #667eea;
+      background: #667eea;
+      color: white;
+    }
+
+    .counter-value {
+      font-size: 1.25rem;
+      font-weight: 600;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .counter-label {
+      font-size: 0.875rem;
+      color: #495057;
+    }
+
+    /* Passenger Card */
+    .passenger-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .passenger-card h4 {
+      color: #667eea;
+      margin-bottom: 16px;
+      font-size: 1rem;
+    }
+
+    /* Conditional Section */
+    .conditional-section {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .conditional-section h5 {
+      color: #856404;
+      font-size: 0.875rem;
+      margin-bottom: 12px;
+    }
+
+    /* Extras Grid */
+    .extras-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .extra-card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .extra-card:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+
+    .extra-card.selected {
+      border-color: #667eea;
+      background: #667eea;
+      color: white;
+    }
+
+    .extra-card h5 {
+      font-size: 0.875rem;
+      margin-bottom: 4px;
+    }
+
+    .extra-card p {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    /* Navigation Buttons */
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      padding: 24px;
+      background: #f8f9fa;
+      border-top: 1px solid #e9ecef;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: #e9ecef;
+      color: #495057;
+    }
+
+    .btn-secondary:hover {
+      background: #dee2e6;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    /* JSON Output */
+    .json-output {
+      background: #1a1a2e;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    .json-output pre {
+      color: #a8dadc;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /* Summary Section */
+    .summary-section {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .summary-section h5 {
+      color: #667eea;
+      margin-bottom: 12px;
+      font-size: 0.875rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-label {
+      color: #6c757d;
+      font-size: 0.875rem;
+    }
+
+    .summary-value {
+      font-weight: 500;
+      color: #1a1a2e;
+      font-size: 0.875rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .form-row {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .radio-group {
+        flex-direction: column;
+      }
+
+      .progress-step .step-label {
+        font-size: 0.65rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Book Your Flight</h1>
+      <p>Complete the form to book your flight</p>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="progress-container">
+      <div class="progress-step active" data-step="1">
+        <div class="step-number">1</div>
+        <div class="step-label">Travel</div>
+      </div>
+      <div class="progress-step" data-step="2">
+        <div class="step-number">2</div>
+        <div class="step-label">Passengers</div>
+      </div>
+      <div class="progress-step" data-step="3">
+        <div class="step-number">3</div>
+        <div class="step-label">Payment</div>
+      </div>
+      <div class="progress-step" data-step="4">
+        <div class="step-number">4</div>
+        <div class="step-label">Extras</div>
+      </div>
+    </div>
+
+    <!-- Step 1: Travel Details -->
+    <div class="form-section active" id="step1">
+      <h3 class="section-title">Travel Details</h3>
+
+      <div class="form-group">
+        <label>Trip Type <span class="required">*</span></label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="tripType" value="one-way"> One Way
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="tripType" value="round-trip" checked> Round Trip
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="tripType" value="multi-city"> Multi-city
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="origin">From <span class="required">*</span></label>
+          <input type="text" id="origin" placeholder="City or Airport" list="airports">
+        </div>
+        <div class="form-group">
+          <label for="destination">To <span class="required">*</span></label>
+          <input type="text" id="destination" placeholder="City or Airport" list="airports">
+        </div>
+      </div>
+
+      <datalist id="airports">
+        <option value="SGN - Ho Chi Minh City">
+        <option value="HAN - Hanoi">
+        <option value="SIN - Singapore">
+        <option value="BKK - Bangkok">
+        <option value="HKG - Hong Kong">
+        <option value="NRT - Tokyo Narita">
+        <option value="ICN - Seoul Incheon">
+        <option value="SYD - Sydney">
+        <option value="LAX - Los Angeles">
+        <option value="LHR - London Heathrow">
+      </datalist>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="departDate">Departure Date <span class="required">*</span></label>
+          <input type="date" id="departDate">
+        </div>
+        <div class="form-group" id="returnDateGroup">
+          <label for="returnDate">Return Date <span class="required">*</span></label>
+          <input type="date" id="returnDate">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Cabin Class <span class="required">*</span></label>
+        <select id="cabinClass">
+          <option value="economy">Economy</option>
+          <option value="premium-economy">Premium Economy</option>
+          <option value="business">Business</option>
+          <option value="first">First Class</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Passengers <span class="required">*</span></label>
+        <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 8px;">
+          <div class="passenger-counter">
+            <span class="counter-label">Adults (12+)</span>
+            <div class="counter-controls">
+              <button class="counter-btn" onclick="updateCounter('adults', -1)">-</button>
+              <span class="counter-value" id="adults-count">1</span>
+              <button class="counter-btn" onclick="updateCounter('adults', 1)">+</button>
+            </div>
+          </div>
+          <div class="passenger-counter">
+            <span class="counter-label">Children (2-11)</span>
+            <div class="counter-controls">
+              <button class="counter-btn" onclick="updateCounter('children', -1)">-</button>
+              <span class="counter-value" id="children-count">0</span>
+              <button class="counter-btn" onclick="updateCounter('children', 1)">+</button>
+            </div>
+          </div>
+          <div class="passenger-counter">
+            <span class="counter-label">Infants (&lt;2)</span>
+            <div class="counter-controls">
+              <button class="counter-btn" onclick="updateCounter('infants', -1)">-</button>
+              <span class="counter-value" id="infants-count">0</span>
+              <button class="counter-btn" onclick="updateCounter('infants', 1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-option" style="display: inline-flex;">
+          <input type="checkbox" id="flexibleDates"> Flexible dates (+/- 3 days)
+        </label>
+      </div>
+    </div>
+
+    <!-- Step 2: Personal Info -->
+    <div class="form-section" id="step2">
+      <h3 class="section-title">Passenger Information</h3>
+
+      <div id="passengers-container">
+        <!-- Passenger 1 (Adult) -->
+        <div class="passenger-card">
+          <h4>Passenger 1 (Adult) - Lead Passenger</h4>
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 0.3;">
+              <label for="title1">Title <span class="required">*</span></label>
+              <select id="title1">
+                <option value="mr">Mr</option>
+                <option value="mrs">Mrs</option>
+                <option value="ms">Ms</option>
+                <option value="dr">Dr</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="firstName1">First Name <span class="required">*</span></label>
+              <input type="text" id="firstName1" placeholder="As on passport">
+            </div>
+            <div class="form-group">
+              <label for="lastName1">Last Name <span class="required">*</span></label>
+              <input type="text" id="lastName1" placeholder="As on passport">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dob1">Date of Birth <span class="required">*</span></label>
+              <input type="date" id="dob1">
+            </div>
+            <div class="form-group">
+              <label for="gender1">Gender</label>
+              <select id="gender1">
+                <option value="">Select...</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="nationality1">Nationality <span class="required">*</span></label>
+              <select id="nationality1">
+                <option value="VN">Vietnam</option>
+                <option value="SG">Singapore</option>
+                <option value="TH">Thailand</option>
+                <option value="US">United States</option>
+                <option value="GB">United Kingdom</option>
+                <option value="AU">Australia</option>
+                <option value="JP">Japan</option>
+                <option value="KR">South Korea</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="passport1">Passport Number <span class="required">*</span></label>
+              <input type="text" id="passport1" placeholder="e.g., A12345678">
+            </div>
+            <div class="form-group">
+              <label for="passportExpiry1">Passport Expiry <span class="required">*</span></label>
+              <input type="date" id="passportExpiry1">
+              <div class="helper-text">Must be valid for 6+ months after travel</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email1">Email <span class="required">*</span></label>
+              <input type="email" id="email1" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+              <label for="phone1">Phone <span class="required">*</span></label>
+              <input type="tel" id="phone1" placeholder="+84 123 456 789">
+            </div>
+          </div>
+        </div>
+
+        <!-- Infant Conditional Section (Demo) -->
+        <div class="conditional-section" id="infantSection" style="display: none;">
+          <h5>Infant Options (for passengers under 2)</h5>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input type="checkbox" name="infantOptions" value="seatBelt"> Baby Seat Belt
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="infantOptions" value="bassinet"> Bassinet Request
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="infantOptions" value="sleepwear"> Baby Sleepwear
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Payment -->
+    <div class="form-section" id="step3">
+      <h3 class="section-title">Payment Information</h3>
+
+      <div class="form-group">
+        <label for="cardName">Cardholder Name <span class="required">*</span></label>
+        <input type="text" id="cardName" placeholder="Name on card">
+      </div>
+
+      <div class="form-group">
+        <label for="cardNumber">Card Number <span class="required">*</span></label>
+        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cardExpiry">Expiry Date <span class="required">*</span></label>
+          <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+        </div>
+        <div class="form-group">
+          <label for="cardCvv">CVV <span class="required">*</span></label>
+          <input type="text" id="cardCvv" placeholder="123" maxlength="4">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="billingAddress">Billing Address <span class="required">*</span></label>
+        <input type="text" id="billingAddress" placeholder="Street address">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="billingCity">City <span class="required">*</span></label>
+          <input type="text" id="billingCity">
+        </div>
+        <div class="form-group">
+          <label for="billingPostal">Postal Code <span class="required">*</span></label>
+          <input type="text" id="billingPostal">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-option" style="display: inline-flex;">
+          <input type="checkbox" id="savePayment"> Save payment method for future bookings
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label for="promoCode">Promo Code (Optional)</label>
+        <input type="text" id="promoCode" placeholder="Enter code">
+      </div>
+    </div>
+
+    <!-- Step 4: Additional Options -->
+    <div class="form-section" id="step4">
+      <h3 class="section-title">Additional Options</h3>
+
+      <div class="form-group">
+        <label>Special Assistance</label>
+        <div class="checkbox-group">
+          <label class="checkbox-option">
+            <input type="checkbox" name="assistance" value="wheelchair"> Wheelchair
+          </label>
+          <label class="checkbox-option">
+            <input type="checkbox" name="assistance" value="elderAssist"> Elder Assistance
+          </label>
+          <label class="checkbox-option">
+            <input type="checkbox" name="assistance" value="visualHearing"> Visual/Hearing Support
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="mealType">Meal Preference</label>
+        <select id="mealType">
+          <option value="">No preference</option>
+          <option value="vegetarian">Vegetarian</option>
+          <option value="vegan">Vegan</option>
+          <option value="halal">Halal</option>
+          <option value="kosher">Kosher</option>
+          <option value="diabetic">Diabetic</option>
+          <option value="glutenFree">Gluten Free</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="allergies">Allergies (Optional)</label>
+        <input type="text" id="allergies" placeholder="e.g., peanuts, shellfish">
+      </div>
+
+      <div class="form-group">
+        <label>Baggage</label>
+        <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 8px;">
+          <div class="passenger-counter">
+            <span class="counter-label">Checked Bags (23kg)</span>
+            <div class="counter-controls">
+              <button class="counter-btn" onclick="updateCounter('bags', -1)">-</button>
+              <span class="counter-value" id="bags-count">1</span>
+              <button class="counter-btn" onclick="updateCounter('bags', 1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Seat Preference</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="seatPref" value="window"> Window
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="seatPref" value="aisle"> Aisle
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="seatPref" value="none" checked> No Preference
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Extras</label>
+        <div class="extras-grid">
+          <div class="extra-card" onclick="toggleExtra(this)">
+            <h5>Travel Insurance</h5>
+            <p>Comprehensive coverage</p>
+          </div>
+          <div class="extra-card" onclick="toggleExtra(this)">
+            <h5>eSIM Data Pack</h5>
+            <p>Stay connected abroad</p>
+          </div>
+          <div class="extra-card" onclick="toggleExtra(this)">
+            <h5>Airport Lounge</h5>
+            <p>Relax before your flight</p>
+          </div>
+          <div class="extra-card" onclick="toggleExtra(this)">
+            <h5>Priority Boarding</h5>
+            <p>Board first</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-section">
+        <h5>Booking Summary</h5>
+        <div class="summary-row">
+          <span class="summary-label">Route</span>
+          <span class="summary-value" id="summaryRoute">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Dates</span>
+          <span class="summary-value" id="summaryDates">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Passengers</span>
+          <span class="summary-value" id="summaryPassengers">1 Adult</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Class</span>
+          <span class="summary-value" id="summaryClass">Economy</span>
+        </div>
+      </div>
+
+      <!-- JSON Output Preview -->
+      <div class="form-group">
+        <label>JSON Output (for integration)</label>
+        <div class="json-output">
+          <pre id="jsonOutput">{}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="visibility: hidden;">Previous</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">Next Step</button>
+    </div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    const counters = {
+      adults: 1,
+      children: 0,
+      infants: 0,
+      bags: 1
+    };
+
+    function updateCounter(type, delta) {
+      const minVal = type === 'adults' ? 1 : 0;
+      const maxVal = 9;
+      counters[type] = Math.max(minVal, Math.min(maxVal, counters[type] + delta));
+      document.getElementById(`${type}-count`).textContent = counters[type];
+
+      // Show infant options if infants > 0
+      if (type === 'infants') {
+        document.getElementById('infantSection').style.display = counters.infants > 0 ? 'block' : 'none';
+      }
+
+      updateSummary();
+    }
+
+    function changeStep(delta) {
+      const newStep = currentStep + delta;
+      if (newStep < 1 || newStep > totalSteps) return;
+
+      // Update step indicators
+      document.querySelectorAll('.progress-step').forEach((step, index) => {
+        step.classList.remove('active');
+        if (index + 1 < newStep) {
+          step.classList.add('completed');
+        } else {
+          step.classList.remove('completed');
+        }
+        if (index + 1 === newStep) {
+          step.classList.add('active');
+        }
+      });
+
+      // Update form sections
+      document.querySelectorAll('.form-section').forEach((section, index) => {
+        section.classList.remove('active');
+        if (index + 1 === newStep) {
+          section.classList.add('active');
+        }
+      });
+
+      currentStep = newStep;
+
+      // Update navigation buttons
+      document.getElementById('prevBtn').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+      document.getElementById('nextBtn').textContent = currentStep === totalSteps ? 'Complete Booking' : 'Next Step';
+
+      // Update summary when reaching step 4
+      if (currentStep === 4) {
+        updateSummary();
+        generateJSON();
+      }
+    }
+
+    function toggleExtra(element) {
+      element.classList.toggle('selected');
+      generateJSON();
+    }
+
+    function updateSummary() {
+      const origin = document.getElementById('origin').value || '-';
+      const destination = document.getElementById('destination').value || '-';
+      const departDate = document.getElementById('departDate').value || '-';
+      const returnDate = document.getElementById('returnDate').value || '';
+      const cabinClass = document.getElementById('cabinClass').value;
+
+      document.getElementById('summaryRoute').textContent = `${origin} → ${destination}`;
+      document.getElementById('summaryDates').textContent = returnDate ? `${departDate} - ${returnDate}` : departDate;
+
+      let passengers = [];
+      if (counters.adults > 0) passengers.push(`${counters.adults} Adult${counters.adults > 1 ? 's' : ''}`);
+      if (counters.children > 0) passengers.push(`${counters.children} Child${counters.children > 1 ? 'ren' : ''}`);
+      if (counters.infants > 0) passengers.push(`${counters.infants} Infant${counters.infants > 1 ? 's' : ''}`);
+      document.getElementById('summaryPassengers').textContent = passengers.join(', ');
+
+      document.getElementById('summaryClass').textContent = cabinClass.charAt(0).toUpperCase() + cabinClass.slice(1).replace('-', ' ');
+    }
+
+    function generateJSON() {
+      const tripType = document.querySelector('input[name="tripType"]:checked')?.value || 'round-trip';
+      const seatPref = document.querySelector('input[name="seatPref"]:checked')?.value || 'none';
+
+      const selectedExtras = [];
+      document.querySelectorAll('.extra-card.selected h5').forEach(el => {
+        selectedExtras.push(el.textContent);
+      });
+
+      const selectedAssistance = [];
+      document.querySelectorAll('input[name="assistance"]:checked').forEach(el => {
+        selectedAssistance.push(el.value);
+      });
+
+      const json = {
+        booking: {
+          tripType: tripType,
+          origin: document.getElementById('origin').value,
+          destination: document.getElementById('destination').value,
+          departureDate: document.getElementById('departDate').value,
+          returnDate: document.getElementById('returnDate').value,
+          cabinClass: document.getElementById('cabinClass').value,
+          flexibleDates: document.getElementById('flexibleDates').checked,
+          passengers: {
+            adults: counters.adults,
+            children: counters.children,
+            infants: counters.infants,
+            details: [{
+              type: "adult",
+              title: document.getElementById('title1').value,
+              firstName: document.getElementById('firstName1').value,
+              lastName: document.getElementById('lastName1').value,
+              dateOfBirth: document.getElementById('dob1').value,
+              gender: document.getElementById('gender1').value,
+              nationality: document.getElementById('nationality1').value,
+              passport: {
+                number: document.getElementById('passport1').value,
+                expiry: document.getElementById('passportExpiry1').value
+              },
+              contact: {
+                email: document.getElementById('email1').value,
+                phone: document.getElementById('phone1').value
+              }
+            }]
+          },
+          baggage: {
+            checked: counters.bags
+          },
+          extras: {
+            selectedExtras: selectedExtras,
+            specialAssistance: selectedAssistance,
+            mealPreference: document.getElementById('mealType').value,
+            allergies: document.getElementById('allergies').value,
+            seatPreference: seatPref
+          },
+          payment: {
+            cardholderName: document.getElementById('cardName').value,
+            cardLast4: document.getElementById('cardNumber').value.slice(-4),
+            saveForFuture: document.getElementById('savePayment').checked
+          },
+          promoCode: document.getElementById('promoCode').value
+        }
+      };
+
+      document.getElementById('jsonOutput').textContent = JSON.stringify(json, null, 2);
+    }
+
+    // Handle trip type change
+    document.querySelectorAll('input[name="tripType"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        document.getElementById('returnDateGroup').style.display =
+          this.value === 'one-way' ? 'none' : 'block';
+      });
+    });
+
+    // Set minimum dates
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('departDate').min = today;
+    document.getElementById('returnDate').min = today;
+
+    // Initialize
+    updateSummary();
+  </script>
+</body>
+</html>

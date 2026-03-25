@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Notion__notion-fetch",
+      "mcp__claude_ai_Notion__notion-search",
+      "mcp__claude_ai_Notion__notion-create-pages",
+      "Bash(open:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
